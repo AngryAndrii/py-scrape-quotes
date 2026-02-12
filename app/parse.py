@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, astuple
+import csv
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -12,12 +13,17 @@ class Quote:
     author: str
     tags: list[str]
 
+
+QUOTE_FIELDS = [field.name for field in fields(Quote)]
+
+
 def parse_single_block(block: Tag) -> Quote:
     return Quote(
         text=block.select_one(".text").text,
         author=block.select_one(".author").text,
         tags=[tag.text for tag in block.select(".tag")]
     )
+
 
 def get_all_quotes() -> list[Quote]:
     text = requests.get(BASE_URL).content
@@ -26,10 +32,15 @@ def get_all_quotes() -> list[Quote]:
     return [parse_single_block(block) for block in blocks]
 
 
+def write_quotes_to_csv(path, quotes: list[Quote]):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(QUOTE_FIELDS)
+        writer.writerows([astuple(quote) for quote in quotes])
 
 
 def main(output_csv_path: str) -> None:
-    get_all_quotes()
+    write_quotes_to_csv(output_csv_path, get_all_quotes())
 
 
 if __name__ == "__main__":
