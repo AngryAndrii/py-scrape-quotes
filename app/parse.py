@@ -1,9 +1,11 @@
+import time
 from dataclasses import dataclass, fields, astuple
 import csv
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from requests import RequestException
 
 BASE_URL = "https://quotes.toscrape.com/"
 
@@ -34,8 +36,14 @@ def get_all_quotes() -> list[Quote]:
 
         url = urljoin(BASE_URL, f"page/{page}/")
 
-        text = requests.get(url).content
-        soup = BeautifulSoup(text, "html.parser")
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+        except RequestException as e:
+            print(f"Request failed on page {page}: {e}")
+            break
+
+        soup = BeautifulSoup(response.content, "html.parser")
         blocks = soup.select(".quote")
 
         if not blocks:
@@ -43,6 +51,7 @@ def get_all_quotes() -> list[Quote]:
 
         quotes.extend(parse_single_block(block) for block in blocks)
         page += 1
+        time.sleep(0.5)
 
     return quotes
 
