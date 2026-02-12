@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+BASE_URL = "https://quotes.toscrape.com/"
+
 
 @dataclass
 class Quote:
