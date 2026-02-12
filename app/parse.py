@@ -13,11 +13,11 @@ class Quote:
     tags: list[str]
 
 def parse_single_block(block: Tag) -> Quote:
-    print(dict(
+    return Quote(
         text=block.select_one(".text").text,
         author=block.select_one(".author").text,
-        tags=block.select()
-    ))
+        tags=[tag.text for tag in block.select(".tag")]
+    )
 
 def get_all_quotes() -> list[Quote]:
     text = requests.get(BASE_URL).content
