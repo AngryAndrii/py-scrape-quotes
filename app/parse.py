@@ -33,7 +33,6 @@ def get_all_quotes() -> list[Quote]:
     quotes = []
 
     while True:
-
         url = urljoin(BASE_URL, f"page/{page}/")
 
         try:
