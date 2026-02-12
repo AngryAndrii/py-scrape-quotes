@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 BASE_URL = "https://quotes.toscrape.com/"
 
@@ -12,10 +12,21 @@ class Quote:
     author: str
     tags: list[str]
 
-def get_all_quotes():
+def parse_single_block(block: Tag) -> Quote:
+    print(dict(
+        text=block.select_one(".text").text,
+        author=block.select_one(".author").text,
+        tags=block.select()
+    ))
+
+def get_all_quotes() -> list[Quote]:
     text = requests.get(BASE_URL).content
     soup = BeautifulSoup(text, "html.parser")
-    print(soup.prettify())
+    blocks = soup.select(".quote")
+    return [parse_single_block(block) for block in blocks]
+
+
+
 
 def main(output_csv_path: str) -> None:
     get_all_quotes()
