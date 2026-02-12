@@ -1,5 +1,6 @@
 from dataclasses import dataclass, fields, astuple
 import csv
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -26,10 +27,24 @@ def parse_single_block(block: Tag) -> Quote:
 
 
 def get_all_quotes() -> list[Quote]:
-    text = requests.get(BASE_URL).content
-    soup = BeautifulSoup(text, "html.parser")
-    blocks = soup.select(".quote")
-    return [parse_single_block(block) for block in blocks]
+    page = 1
+    quotes = []
+
+    while True:
+
+        url = urljoin(BASE_URL, f"page/{page}/")
+
+        text = requests.get(url).content
+        soup = BeautifulSoup(text, "html.parser")
+        blocks = soup.select(".quote")
+
+        if not blocks:
+            break
+
+        quotes.extend(parse_single_block(block) for block in blocks)
+        page += 1
+
+    return quotes
 
 
 def write_quotes_to_csv(path, quotes: list[Quote]):
